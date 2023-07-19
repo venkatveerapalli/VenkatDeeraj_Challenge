@@ -1,21 +1,24 @@
 ---
 - name: Configure web server
-  hosts: web_servers
+  hosts: web_nodes
   become: true
   tasks:
     - name: install httpd
       yum:
         name: httpd
         state: installed
+      become: true
 
     - name: Copy index.html file
       copy:
         src: index.html
         dest: /var/www/html/index.html
+      become: true
       
 
     - name: Restart web server
       service:
         name: httpd
         state: restarted
+      become: true
     
