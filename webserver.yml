@@ -1,24 +1,69 @@
 ---
-- name: Configure web server
-  hosts: web_nodes
+- name: Deploy Web Server
+  hosts: web_servers
   become: true
+  vars:
+    web_server_port: 80
+    ssl_cert_file: /etc/ssl/certs/web_server.crt
+    ssl_key_file: /etc/ssl/private/web_server.key
+
   tasks:
-    - name: install httpd
+    - name: Install Apache web server
       yum:
-        name: httpd
-        state: installed
-      become: true
+        name: apache2
+        state: present
 
-    - name: Copy index.html file
+    - name: Copy HTML content to web server
       copy:
-        src: index.html
+        content: |
+          <html>
+          <head>
+          <title>Hello World</title>
+          </head>
+          <body>
+          <h1>Hello World!</h1>
+          </body>
+          </html>
         dest: /var/www/html/index.html
-      become: true
-      
 
-    - name: Restart web server
+    - name: Enable SSL module
+      apache2_module:
+        name: ssl
+        state: present
+
+    - name: Generate self-signed SSL certificate
+      command: >
+        openssl req -x509 -nodes -days 365
+        -newkey rsa:2048 -keyout {{ ssl_key_file }}
+        -out {{ ssl_cert_file }}
+        -subj "/CN=www.***.com"
+
+    - name: Configure Apache virtual host
+      template:
+        src: apache_vhost.conf.j2
+        dest: /etc/apache2/sites-available/default-ssl.conf
+
+    - name: Enable default SSL virtual host
+      apache2_site:
+        name: default-ssl
+        state: present
+
+    - name: Redirect HTTP to HTTPS
+      template:
+        src: apache_redirect.conf.j2
+        dest: /etc/apache2/conf-available/redirect.conf
+
+    - name: Enable Apache rewrite module
+      apache2_module:
+        name: rewrite
+        state: present
+
+    - name: Enable Apache redirect configuration
+      apache2_conf:
+        name: redirect.conf
+        state: present
+
+    - name: Restart Apache service
       service:
-        name: httpd
+        name: apache2
         state: restarted
-      become: true
-    
