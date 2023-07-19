@@ -1,0 +1,8 @@
+After preparing the playbook and templates, execute the following command to run the playbook:
+ansible-playbook -i inventory_file playbook.yml
+
+
+Note:
+1)In the inventory file, remember to replace web_servers in the hosts field with the appropriate target hosts or group name
+2)This playbook 'webserver.yml' will install Apache, copy the HTML content to the appropriate location, generate a self-signed SSL certificate, 
+  configure the Apache virtual host for HTTPS, enable the redirect from HTTP to HTTPS, and restart the Apache service.
