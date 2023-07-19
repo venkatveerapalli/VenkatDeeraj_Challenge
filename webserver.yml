@@ -1,13 +1,21 @@
 ---
-# tasks file for webserver
-- name: Setup Apache
-  hosts: node01
+- name: Configure web server
+  hosts: web_servers
+  become: true
   tasks:
     - name: install httpd
       yum:
         name: httpd
         state: installed
-    - name: Start service
+
+    - name: Copy index.html file
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+      
+
+    - name: Restart web server
       service:
         name: httpd
-        state: started
+        state: restarted
+    
